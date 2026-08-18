@@ -622,6 +622,27 @@ export default function Benvenuto() {
           </button>
         </p>
 
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 'var(--space-md)', flexWrap: 'wrap', margin: 'var(--space-sm) 0' }}>
+          <a
+            href="https://classchronicles.netlify.app/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="link-testuale"
+            style={{ fontSize: '0.875rem' }}
+          >
+            🌐 Sito Ufficiale
+          </a>
+          <a
+            href="https://youtube.com/@classchroniclesdev?si=xG2_Uy0gknBKlGED"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="link-testuale"
+            style={{ fontSize: '0.875rem' }}
+          >
+            🎬 Canale YouTube
+          </a>
+        </div>
+
         <BannerFeedback />
       </main>
     </div>

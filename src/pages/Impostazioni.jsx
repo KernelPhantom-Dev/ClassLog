@@ -150,6 +150,34 @@ export default function Impostazioni() {
 
         <ControlloZoom />
         <SezioneEliminaAccount utente={utente} onEliminato={gestisciAccountEliminato} />
+        
+        <div className="neo-card" style={{ backgroundColor: 'var(--color-surface-container)' }}>
+          <h3 className="text-title-lg" style={{ margin: '0 0 var(--space-sm) 0' }}>Risorse Utili</h3>
+          <p className="text-body-md" style={{ color: 'var(--color-on-surface-variant)', margin: '0 0 var(--space-md) 0' }}>
+            Visita il nostro sito ufficiale o il canale YouTube per scoprire come funziona Class Chronicles e vedere i video tutorial.
+          </p>
+          <div style={{ display: 'flex', gap: 'var(--space-md)', flexWrap: 'wrap' }}>
+            <a
+              href="https://classchronicles.netlify.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-brutalist btn-secondary-outline"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-xs)', textDecoration: 'none' }}
+            >
+              🌐 Sito Web
+            </a>
+            <a
+              href="https://youtube.com/@classchroniclesdev?si=xG2_Uy0gknBKlGED"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-brutalist btn-secondary-outline"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-xs)', textDecoration: 'none' }}
+            >
+              🎬 Canale YouTube
+            </a>
+          </div>
+        </div>
+
         <BannerFeedback />
       </div>
     </LayoutApp>
