@@ -542,6 +542,9 @@ function CardRichiestaRimozione({ richiesta, onDecidi, onBanna, motiviPredefinit
 
   return (
     <div className="card-richiesta-rimozione">
+      <pre style={{ fontSize: 10, background: '#111', color: '#0f0', padding: 8, overflowX: 'auto', borderRadius: 4 }}>
+        {JSON.stringify({ post: richiesta.post, richiesta_keys: Object.keys(richiesta) }, null, 2)}
+      </pre>
       <span className="text-label-caps" style={{ color: 'var(--color-tertiary-container)' }}>
         🙈 Richiesta di Rimozione
       </span>
@@ -711,6 +714,9 @@ function CardSegnalazioneUtente({ segnalazione, onArchivia, onBanna, motiviPrede
 
   return (
     <div className="card-richiesta-rimozione">
+      <pre style={{ fontSize: 10, background: '#111', color: '#0f0', padding: 8, overflowX: 'auto', borderRadius: 4 }}>
+        {JSON.stringify(segnalazione, null, 2)}
+      </pre>
       <span className="text-label-caps" style={{ color: 'var(--color-error)' }}>
         🚩 Segnalazione Utente
       </span>

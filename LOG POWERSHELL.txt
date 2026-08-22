@@ -1,0 +1,30 @@
+Windows PowerShell
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Try the new cross-platform PowerShell https://aka.ms/pscore6
+
+PS C:\Users\asang> cd C:\Users\asang\Desktop\classchronicles-test1-registrazione-login\classchronicles-web
+PS C:\Users\asang\Desktop\classchronicles-test1-registrazione-login\classchronicles-web> git add .
+warning: in the working copy of 'src/pages/Admin.jsx', LF will be replaced by CRLF the next time Git touches it
+PS C:\Users\asang\Desktop\classchronicles-test1-registrazione-login\classchronicles-web> git commit -m "ban tentativo 2"
+[main bdf284d] ban tentativo 2
+ 1 file changed, 7 insertions(+), 10 deletions(-)
+PS C:\Users\asang\Desktop\classchronicles-test1-registrazione-login\classchronicles-web> git push
+Enumerating objects: 9, done.
+Counting objects: 100% (9/9), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (5/5), done.
+Writing objects: 100% (5/5), 491 bytes | 245.00 KiB/s, done.
+Total 5 (delta 4), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (4/4), completed with 4 local objects.
+remote: This repository moved. Please use the new location:
+remote:   https://github.com/KernelPhantom-Dev/ClassLog.git
+To https://github.com/gjunkshiasan-lgtm/ClassLog.git
+   7bf4aac..bdf284d  main -> main
+PS C:\Users\asang\Desktop\classchronicles-test1-registrazione-login\classchronicles-web>
+
+
+
+
+
+
