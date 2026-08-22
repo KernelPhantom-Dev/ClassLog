@@ -55,7 +55,7 @@ function CardModerazione({ post, onModera, onBanna, motiviPredefiniti, eRoot }) 
         </button>
       </div>
 
-      {eRoot && post.autore_id && (
+      {post.autore_id && (
         <div style={{ marginTop: 'var(--space-sm)' }}>
           <button
             className="btn-azione-piccolo pericolo"
@@ -109,13 +109,12 @@ function CodaApprovazione({ utente }) {
     caricaCoda()
   }, [caricaCoda])
 
-  // Carica i motivi ban predefiniti per il form inline (solo se root)
+  // Carica i motivi ban predefiniti per il form inline
   useEffect(() => {
-    if (!eRoot) return
     chiamaFunzione('root-ottieni-utenti', { richiedente_id: utente.id })
       .then((r) => setMotiviPredefiniti(r.motivi_ban_predefiniti ?? []))
       .catch(() => {})
-  }, [utente.id, eRoot])
+  }, [utente.id])
 
   async function gestisciModerazione(postId, azione) {
     try {
@@ -571,7 +570,7 @@ function CardRichiestaRimozione({ richiesta, onDecidi, onBanna, motiviPredefinit
         </button>
       </div>
 
-      {eRoot && autoreId && (
+      {autoreId && (
         <div style={{ marginTop: 'var(--space-sm)' }}>
           <button
             type="button"
@@ -624,11 +623,10 @@ function RichiesteRimozione({ utente }) {
   }, [caricaRichieste])
 
   useEffect(() => {
-    if (!eRoot) return
     chiamaFunzione('root-ottieni-utenti', { richiedente_id: utente.id })
       .then((r) => setMotiviPredefiniti(r.motivi_ban_predefiniti ?? []))
       .catch(() => {})
-  }, [utente.id, eRoot])
+  }, [utente.id])
 
   async function gestisciBanAutore(autoreId, giorni, motivo) {
     try {
@@ -735,7 +733,7 @@ function CardSegnalazioneUtente({ segnalazione, onArchivia, onBanna, motiviPrede
         </button>
       </div>
 
-      {eRoot && utenteTarget?.id && (
+      {utenteTarget?.id && (
         <div style={{ marginTop: 'var(--space-sm)' }}>
           <button
             type="button"
@@ -788,11 +786,10 @@ function SegnalazioniUtenti({ utente }) {
   }, [caricaSegnalazioni])
 
   useEffect(() => {
-    if (!eRoot) return
     chiamaFunzione('root-ottieni-utenti', { richiedente_id: utente.id })
       .then((r) => setMotiviPredefiniti(r.motivi_ban_predefiniti ?? []))
       .catch(() => {})
-  }, [utente.id, eRoot])
+  }, [utente.id])
 
   async function gestisciBanUtente(utenteId, giorni, motivo) {
     try {
