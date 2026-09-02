@@ -17,8 +17,9 @@ function AccessoNegato() {
   )
 }
 
-function CardModerazione({ post, onModera }) {
+function CardModerazione({ post, onModera, onBanna, motiviPredefiniti, eRoot }) {
   const [elaborando, setElaborando] = useState(false)
+  const [mostraFormBan, setMostraFormBan] = useState(false)
 
   async function gestisci(azione) {
     setElaborando(true)
@@ -38,6 +39,11 @@ function CardModerazione({ post, onModera }) {
 
       <h4 className="post-card-titolo" style={{ fontSize: 18 }}>{post.titolo}</h4>
       <p className="post-card-contenuto">{post.contenuto}</p>
+      {post.autore_nickname && (
+        <span style={{ fontSize: 12, color: 'var(--color-on-surface-variant)', display: 'block', marginBottom: 4 }}>
+          ✍️ Autore: @{post.autore_nickname}
+        </span>
+      )}
       <span className="post-card-tempo">{tempoRelativo(post.creato_il)}</span>
 
       <div className="admin-card-azioni">
@@ -48,6 +54,30 @@ function CardModerazione({ post, onModera }) {
           ⊗ Rifiuta
         </button>
       </div>
+
+      {post.autore_id && (
+        <div style={{ marginTop: 'var(--space-sm)' }}>
+          <button
+            className="btn-azione-piccolo pericolo"
+            style={{ width: '100%' }}
+            onClick={() => setMostraFormBan(!mostraFormBan)}
+            disabled={elaborando}
+          >
+            🚫 {mostraFormBan ? 'Annulla' : 'Banna Autore'}
+          </button>
+          {mostraFormBan && (
+            <FormBanUtente
+              utenteTarget={{ id: post.autore_id, nickname: post.autore_nickname || '???' }}
+              motiviPredefiniti={motiviPredefiniti}
+              onAnnulla={() => setMostraFormBan(false)}
+              onBanna={async (id, giorni, motivo) => {
+                await onBanna(id, giorni, motivo)
+                setMostraFormBan(false)
+              }}
+            />
+          )}
+        </div>
+      )}
     </div>
   )
 }
@@ -58,6 +88,9 @@ function CodaApprovazione({ utente }) {
   const [filtroAttivo, setFiltroAttivo] = useState(true)
   const [caricamento, setCaricamento] = useState(true)
   const [errore, setErrore] = useState('')
+  const [motiviPredefiniti, setMotiviPredefiniti] = useState([])
+
+  const eRoot = utente.ruolo === 'root'
 
   const caricaCoda = useCallback(async () => {
     setErrore('')
@@ -76,10 +109,31 @@ function CodaApprovazione({ utente }) {
     caricaCoda()
   }, [caricaCoda])
 
+  // Carica i motivi ban predefiniti per il form inline
+  useEffect(() => {
+    chiamaFunzione('root-ottieni-utenti', { richiedente_id: utente.id })
+      .then((r) => setMotiviPredefiniti(r.motivi_ban_predefiniti ?? []))
+      .catch(() => {})
+  }, [utente.id])
+
   async function gestisciModerazione(postId, azione) {
     try {
       await chiamaFunzione('admin-modera-post', { post_id: postId, utente_id: utente.id, azione })
       setPost((prec) => prec.filter((p) => p.id !== postId))
+    } catch (err) {
+      setErrore(err.message)
+    }
+  }
+
+  async function gestisciBanAutore(autoreId, giorni, motivo) {
+    try {
+      await chiamaFunzione('root-gestisci-utente', {
+        richiedente_id: utente.id,
+        utente_target_id: autoreId,
+        azione: 'banna',
+        giorni_ban: giorni,
+        motivo_ban: motivo,
+      })
     } catch (err) {
       setErrore(err.message)
     }
@@ -128,7 +182,14 @@ function CodaApprovazione({ utente }) {
       )}
 
       {!caricamento && post.map((p) => (
-        <CardModerazione key={p.id} post={p} onModera={gestisciModerazione} />
+        <CardModerazione
+          key={p.id}
+          post={p}
+          onModera={gestisciModerazione}
+          onBanna={gestisciBanAutore}
+          motiviPredefiniti={motiviPredefiniti}
+          eRoot={eRoot}
+        />
       ))}
     </div>
   )
@@ -466,8 +527,9 @@ function GestioneUtenti({ utente }) {
   )
 }
 
-function CardRichiestaRimozione({ richiesta, onDecidi }) {
+function CardRichiestaRimozione({ richiesta, onDecidi, onBanna, motiviPredefiniti, eRoot }) {
   const [elaborando, setElaborando] = useState(false)
+  const [mostraFormBan, setMostraFormBan] = useState(false)
 
   async function gestisci(decisione) {
     setElaborando(true)
@@ -475,8 +537,14 @@ function CardRichiestaRimozione({ richiesta, onDecidi }) {
     setElaborando(false)
   }
 
+  const autoreId = richiesta.post?.autore_id
+  const autoreNickname = richiesta.post?.autore_nickname
+
   return (
     <div className="card-richiesta-rimozione">
+      <pre style={{ fontSize: 10, background: '#111', color: '#0f0', padding: 8, overflowX: 'auto', borderRadius: 4 }}>
+        {JSON.stringify({ post: richiesta.post, richiesta_keys: Object.keys(richiesta) }, null, 2)}
+      </pre>
       <span className="text-label-caps" style={{ color: 'var(--color-tertiary-container)' }}>
         🙈 Richiesta di Rimozione
       </span>
@@ -485,9 +553,14 @@ function CardRichiestaRimozione({ richiesta, onDecidi }) {
         <p className="post-card-contenuto">{richiesta.post.contenuto}</p>
       )}
       {richiesta.motivo && (
-        <p className="text-body-md" style={{ fontSize: 14, color: 'var(--color-on-surface-variant)' }}>
+        <p className="text-body-md" style={{ fontSize: 14, color: 'var(--color-on-surface-variant)', margin: '4px 0' }}>
           <strong>Motivo:</strong> {richiesta.motivo}
         </p>
+      )}
+      {autoreNickname && (
+        <span style={{ fontSize: 12, color: 'var(--color-on-surface-variant)', display: 'block', marginBottom: 4 }}>
+          ✍️ Autore: @{autoreNickname}
+        </span>
       )}
       <span className="post-card-tempo">{tempoRelativo(richiesta.creata_il)}</span>
 
@@ -499,6 +572,31 @@ function CardRichiestaRimozione({ richiesta, onDecidi }) {
           ⊗ Rifiuta richiesta
         </button>
       </div>
+
+      {autoreId && (
+        <div style={{ marginTop: 'var(--space-sm)' }}>
+          <button
+            type="button"
+            className="btn-azione-piccolo pericolo"
+            style={{ width: '100%' }}
+            onClick={() => setMostraFormBan(!mostraFormBan)}
+            disabled={elaborando}
+          >
+            🚫 {mostraFormBan ? 'Annulla' : 'Banna Autore'}
+          </button>
+          {mostraFormBan && (
+            <FormBanUtente
+              utenteTarget={{ id: autoreId, nickname: autoreNickname || '???' }}
+              motiviPredefiniti={motiviPredefiniti}
+              onAnnulla={() => setMostraFormBan(false)}
+              onBanna={async (id, giorni, motivo) => {
+                await onBanna(id, giorni, motivo)
+                setMostraFormBan(false)
+              }}
+            />
+          )}
+        </div>
+      )}
     </div>
   )
 }
@@ -507,6 +605,9 @@ function RichiesteRimozione({ utente }) {
   const [richieste, setRichieste] = useState([])
   const [caricamento, setCaricamento] = useState(true)
   const [errore, setErrore] = useState('')
+  const [motiviPredefiniti, setMotiviPredefiniti] = useState([])
+
+  const eRoot = utente.ruolo === 'root'
 
   const caricaRichieste = useCallback(async () => {
     setErrore('')
@@ -523,6 +624,26 @@ function RichiesteRimozione({ utente }) {
   useEffect(() => {
     caricaRichieste()
   }, [caricaRichieste])
+
+  useEffect(() => {
+    chiamaFunzione('root-ottieni-utenti', { richiedente_id: utente.id })
+      .then((r) => setMotiviPredefiniti(r.motivi_ban_predefiniti ?? []))
+      .catch(() => {})
+  }, [utente.id])
+
+  async function gestisciBanAutore(autoreId, giorni, motivo) {
+    try {
+      await chiamaFunzione('root-gestisci-utente', {
+        richiedente_id: utente.id,
+        utente_target_id: autoreId,
+        azione: 'banna',
+        giorni_ban: giorni,
+        motivo_ban: motivo,
+      })
+    } catch (err) {
+      setErrore(err.message)
+    }
+  }
 
   async function gestisciDecisione(richiestaId, decisione) {
     try {
@@ -566,14 +687,22 @@ function RichiesteRimozione({ utente }) {
       )}
 
       {!caricamento && richieste.map((r) => (
-        <CardRichiestaRimozione key={r.id} richiesta={r} onDecidi={gestisciDecisione} />
+        <CardRichiestaRimozione
+          key={r.id}
+          richiesta={r}
+          onDecidi={gestisciDecisione}
+          onBanna={gestisciBanAutore}
+          motiviPredefiniti={motiviPredefiniti}
+          eRoot={eRoot}
+        />
       ))}
     </div>
   )
 }
 
-function CardSegnalazioneUtente({ segnalazione, onArchivia }) {
+function CardSegnalazioneUtente({ segnalazione, onArchivia, onBanna, motiviPredefiniti, eRoot }) {
   const [elaborando, setElaborando] = useState(false)
+  const [mostraFormBan, setMostraFormBan] = useState(false)
 
   async function gestisci() {
     setElaborando(true)
@@ -581,16 +710,21 @@ function CardSegnalazioneUtente({ segnalazione, onArchivia }) {
     setElaborando(false)
   }
 
+  const utenteTarget = segnalazione.utenti
+
   return (
     <div className="card-richiesta-rimozione">
+      <pre style={{ fontSize: 10, background: '#111', color: '#0f0', padding: 8, overflowX: 'auto', borderRadius: 4 }}>
+        {JSON.stringify(segnalazione, null, 2)}
+      </pre>
       <span className="text-label-caps" style={{ color: 'var(--color-error)' }}>
         🚩 Segnalazione Utente
       </span>
       <h4 className="post-card-titolo" style={{ fontSize: 18 }}>
-        @{segnalazione.utenti?.nickname ?? '(utente non più disponibile)'}
-        {segnalazione.utenti?.ruolo && segnalazione.utenti.ruolo !== 'studente' && (
+        @{utenteTarget?.nickname ?? '(utente non più disponibile)'}
+        {utenteTarget?.ruolo && utenteTarget.ruolo !== 'studente' && (
           <span className="badge-moderatore" style={{ marginLeft: 8, verticalAlign: 'middle' }}>
-            {segnalazione.utenti.ruolo}
+            {utenteTarget.ruolo}
           </span>
         )}
       </h4>
@@ -604,6 +738,31 @@ function CardSegnalazioneUtente({ segnalazione, onArchivia }) {
           ✅ Segna come esaminata
         </button>
       </div>
+
+      {utenteTarget?.id && (
+        <div style={{ marginTop: 'var(--space-sm)' }}>
+          <button
+            type="button"
+            className="btn-azione-piccolo pericolo"
+            style={{ width: '100%' }}
+            onClick={() => setMostraFormBan(!mostraFormBan)}
+            disabled={elaborando}
+          >
+            🚫 {mostraFormBan ? 'Annulla' : 'Banna Utente'}
+          </button>
+          {mostraFormBan && (
+            <FormBanUtente
+              utenteTarget={{ id: utenteTarget.id, nickname: utenteTarget.nickname || '???' }}
+              motiviPredefiniti={motiviPredefiniti}
+              onAnnulla={() => setMostraFormBan(false)}
+              onBanna={async (id, giorni, motivo) => {
+                await onBanna(id, giorni, motivo)
+                setMostraFormBan(false)
+              }}
+            />
+          )}
+        </div>
+      )}
     </div>
   )
 }
@@ -612,6 +771,9 @@ function SegnalazioniUtenti({ utente }) {
   const [segnalazioni, setSegnalazioni] = useState([])
   const [caricamento, setCaricamento] = useState(true)
   const [errore, setErrore] = useState('')
+  const [motiviPredefiniti, setMotiviPredefiniti] = useState([])
+
+  const eRoot = utente.ruolo === 'root'
 
   const caricaSegnalazioni = useCallback(async () => {
     setErrore('')
@@ -628,6 +790,26 @@ function SegnalazioniUtenti({ utente }) {
   useEffect(() => {
     caricaSegnalazioni()
   }, [caricaSegnalazioni])
+
+  useEffect(() => {
+    chiamaFunzione('root-ottieni-utenti', { richiedente_id: utente.id })
+      .then((r) => setMotiviPredefiniti(r.motivi_ban_predefiniti ?? []))
+      .catch(() => {})
+  }, [utente.id])
+
+  async function gestisciBanUtente(utenteId, giorni, motivo) {
+    try {
+      await chiamaFunzione('root-gestisci-utente', {
+        richiedente_id: utente.id,
+        utente_target_id: utenteId,
+        azione: 'banna',
+        giorni_ban: giorni,
+        motivo_ban: motivo,
+      })
+    } catch (err) {
+      setErrore(err.message)
+    }
+  }
 
   async function gestisciArchiviazione(segnalazioneId) {
     try {
@@ -670,7 +852,14 @@ function SegnalazioniUtenti({ utente }) {
       )}
 
       {!caricamento && segnalazioni.map((s) => (
-        <CardSegnalazioneUtente key={s.id} segnalazione={s} onArchivia={gestisciArchiviazione} />
+        <CardSegnalazioneUtente
+          key={s.id}
+          segnalazione={s}
+          onArchivia={gestisciArchiviazione}
+          onBanna={gestisciBanUtente}
+          motiviPredefiniti={motiviPredefiniti}
+          eRoot={eRoot}
+        />
       ))}
     </div>
   )
